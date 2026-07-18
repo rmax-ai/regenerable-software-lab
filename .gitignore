@@ -1,0 +1,12 @@
+node_modules/
+.svelte-kit/
+build/
+dist/
+*.tsbuildinfo
+runs/
+reports/*.csv
+reports/*.json
+*.log
+.env
+.env.local
+.coverage/
