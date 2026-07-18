@@ -1,4 +1,4 @@
-// @rsl/evaluator — Individual verification stages (Stages 1-6)
+// @rsl/evaluator — Individual verification stages (Stages 1-12)
 
 import { execSync } from "node:child_process";
 import type { FailureCategory } from "@rsl/benchmark-core";
@@ -127,4 +127,38 @@ export async function testStage(workspacePath: string): Promise<StageResult> {
  */
 export async function contractStage(workspacePath: string): Promise<StageResult> {
   return validateContract(workspacePath);
+}
+
+// ── Stage 7: Hidden Tests ───────────────────────────────────────────────
+
+/**
+ * Run hidden tests that the agent never saw.
+ * Hidden tests exercise edge cases, adversarial inputs, and error paths
+ * not covered by public tests. These run outside the agent workspace.
+ * Failure category: HIDDEN_TEST_FAILURE
+ */
+export async function hiddenTestStage(workspacePath: string): Promise<StageResult> {
+  return runShellStage(7, "Hidden Tests", workspacePath, "pnpm test:hidden", "HIDDEN_TEST_FAILURE");
+}
+
+// ── Stage 8: Property Tests ─────────────────────────────────────────────
+
+/**
+ * Run fast-check property-based tests that verify domain invariants hold
+ * across randomly generated inputs.
+ * Failure category: PROPERTY_VIOLATION
+ */
+export async function propertyTestStage(workspacePath: string): Promise<StageResult> {
+  return runShellStage(8, "Property Tests", workspacePath, "pnpm test:property", "PROPERTY_VIOLATION");
+}
+
+// ── Stage 9: Mutation Testing ───────────────────────────────────────────
+
+/**
+ * Run StrykerJS mutation testing to evaluate whether the test suite catches
+ * intentionally injected defects.
+ * Failure category: MUTATION_SURVIVOR
+ */
+export async function mutationTestStage(workspacePath: string): Promise<StageResult> {
+  return runShellStage(9, "Mutation Testing", workspacePath, "pnpm test:mutation", "MUTATION_SURVIVOR");
 }
