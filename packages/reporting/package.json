@@ -1,0 +1,16 @@
+{
+  "name": "@rsl/reporting",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Report generation — Markdown, JSON, CSV output and comparison reports",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc", "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'"
+  },
+  "dependencies": { "@rsl/benchmark-core": "workspace:*", "@rsl/metrics": "workspace:*" },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0" }
+}

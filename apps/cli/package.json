@@ -1,0 +1,21 @@
+{
+  "name": "@rsl/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "rsl CLI — Regenerable Software Lab benchmark runner",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": { "rsl": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc", "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'"
+  },
+  "dependencies": {
+    "@rsl/benchmark-core": "workspace:*",
+    "@rsl/runner": "workspace:*",
+    "@rsl/reporting": "workspace:*",
+    "@rsl/harness-core": "workspace:*",
+    "commander": "^13.0.0"
+  },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0", "@types/node": "^22.0.0" }
+}

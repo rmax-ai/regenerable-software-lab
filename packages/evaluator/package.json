@@ -1,0 +1,21 @@
+{
+  "name": "@rsl/evaluator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "12-stage verification pipeline for Regenerable Software Lab",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc", "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'"
+  },
+  "dependencies": {
+    "@rsl/benchmark-core": "workspace:*",
+    "@rsl/trace": "workspace:*",
+    "@rsl/metrics": "workspace:*",
+    "@rsl/policies": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0" }
+}

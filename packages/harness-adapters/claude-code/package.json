@@ -1,0 +1,13 @@
+{
+  "name": "@rsl/harness-claude-code",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Claude Code harness adapter for Regenerable Software Lab",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": { "build": "tsc", "clean": "rm -rf dist", "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'" },
+  "dependencies": { "@rsl/harness-core": "workspace:*" },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0" }
+}

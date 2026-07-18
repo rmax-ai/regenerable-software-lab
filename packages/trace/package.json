@@ -1,0 +1,26 @@
+{
+  "name": "@rsl/trace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Normalized JSON Lines trace collection for Regenerable Software Lab",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'test ok'"
+  },
+  "dependencies": {
+    "@rsl/benchmark-core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

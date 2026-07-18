@@ -1,6 +1,4 @@
 node_modules/
-.svelte-kit/
-build/
 dist/
 *.tsbuildinfo
 runs/
@@ -10,3 +8,4 @@ reports/*.json
 .env
 .env.local
 .coverage/
+.turbo/

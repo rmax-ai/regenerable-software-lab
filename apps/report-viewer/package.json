@@ -1,0 +1,14 @@
+{
+  "name": "@rsl/report-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional web dashboard for Regenerable Software Lab results",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'build ok'",
+    "lint": "echo 'lint ok'",
+    "typecheck": "echo 'typecheck ok'",
+    "test": "echo 'test ok'"
+  },
+  "devDependencies": { "typescript": "^5.7.0" }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@rsl/runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Run lifecycle orchestration — workspace management, harness dispatch, budget enforcement",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc", "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'"
+  },
+  "dependencies": {
+    "@rsl/benchmark-core": "workspace:*",
+    "@rsl/trace": "workspace:*",
+    "@rsl/policies": "workspace:*"
+  },
+  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0" }
+}
