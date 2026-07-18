@@ -2,24 +2,23 @@
   "name": "@rsl/benchmark-core",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared types, configuration parsing, and schema definitions for Regenerable Software Lab",
+  "description": "Shared types, configuration parsing, and schema definitions",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./src/index.ts",
+    "./schemas": "./src/schemas.ts",
+    "./types": "./src/types.ts"
   },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
     "lint": "echo 'lint ok'",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'test ok'"
+    "test": "vitest run"
   },
   "dependencies": {
     "decimal.js": "^10.4.3",
-    "zod": "^3.24.0",
-    "zod-to-json-schema": "^3.24.0"
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

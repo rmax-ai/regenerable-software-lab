@@ -1,16 +1,19 @@
 {
   "name": "regenerable-software-lab",
   "private": true,
+  "packageManager": "pnpm@10.22.0",
   "description": "Experimental benchmark for evaluating whether AI coding agents can repeatedly generate software from durable, implementation-independent verification bundles",
   "scripts": {
-    "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
-    "clean": "pnpm -r clean"
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": ">=24.0.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=10.0.0"
   }
 }

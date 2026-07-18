@@ -1,19 +1,19 @@
 {
-  "compilerOptions": {
-    "target": "ES2024",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true
-  }
+  "files": [],
+  "references": [
+    { "path": "packages/benchmark-core" },
+    { "path": "packages/trace" },
+    { "path": "packages/policies" },
+    { "path": "packages/metrics" },
+    { "path": "packages/evaluator" },
+    { "path": "packages/runner" },
+    { "path": "packages/reporting" },
+    { "path": "packages/harness-adapters/core" },
+    { "path": "packages/harness-adapters/fake" },
+    { "path": "packages/harness-adapters/generic-cli" },
+    { "path": "packages/harness-adapters/codex" },
+    { "path": "packages/harness-adapters/claude-code" },
+    { "path": "apps/cli" },
+    { "path": "benchmarks/order-pricing/reference-impl" }
+  ]
 }
