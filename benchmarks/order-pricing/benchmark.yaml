@@ -1,0 +1,76 @@
+# Order-Pricing Benchmark Configuration
+# Version: 0.1.0
+# Source: SPEC.md §25
+
+id: order-pricing
+version: 0.1.0
+language: typescript
+runtime: node-24
+entrypoint: src/server.ts
+
+profiles:
+  basic:
+    public_tests: true
+    hidden_tests: false
+    property_tests: false
+    mutation_tests: false
+    operational_checks: false
+
+  behavioral:
+    public_tests: true
+    hidden_tests: true
+    property_tests: true
+    mutation_tests: true
+    operational_checks: false
+
+  operational:
+    public_tests: true
+    hidden_tests: true
+    property_tests: true
+    mutation_tests: true
+    operational_checks: true
+
+commands:
+  install: pnpm install --offline --frozen-lockfile
+  build: pnpm build
+  lint: pnpm lint
+  typecheck: pnpm typecheck
+  test_public: pnpm test
+  test_hidden: pnpm test:hidden
+  test_property: pnpm test:property
+  test_mutation: pnpm test:mutation
+
+protected_paths:
+  - /spec
+  - /evaluator
+  - /policies
+  - /hidden
+  - /benchmark-config
+
+limits:
+  wall_clock_seconds: 1800
+  memory_mb: 2048
+  disk_mb: 1024
+  network: disabled
+
+# Allowed dependencies for agents (Profile C)
+dependency_policy:
+  allowed:
+    - fastify
+    - fastify-type-provider-zod
+    - zod
+    - decimal.js
+    - uuid
+    - pino
+  blocked:
+    - "*"
+
+# Monetary configuration
+currency:
+  default: USD
+  precision: 2
+  rounding: HALF_UP
+  supported:
+    - USD
+    - EUR
+    - GBP
