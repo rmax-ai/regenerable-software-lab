@@ -1,0 +1,628 @@
+openapi: "3.1.0"
+info:
+  title: Order-Pricing API
+  description: |
+    HTTP order-pricing service for the Regenerable Software Lab benchmark.
+
+    This API manages products, orders, discounts, tax calculations, and final
+    price breakdowns. All monetary values use decimal-safe string representations.
+    Binary floating-point arithmetic must not be used for final financial
+    calculations.
+
+    ## Domain Invariants
+    See invariants/pricing.md and invariants/pricing.yaml for the full list.
+    Key constraints:
+    - Monetary values are strings with decimal-safe precision
+    - Tax is calculated after discounts
+    - Grand total is never negative
+    - Idempotent requests do not create duplicate resources
+    - Calculated orders cannot be modified unless reopened
+  version: "0.1.0"
+  contact:
+    name: Regenerable Software Lab
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Orders
+    description: Order lifecycle management
+  - name: Items
+    description: Order line items
+  - name: Discounts
+    description: Order-level discounts
+  - name: Health
+    description: Service health check
+
+paths:
+  # ── Health ──────────────────────────────────────────────────────────
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Service health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Orders ──────────────────────────────────────────────────────────
+
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create a new draft order
+      operationId: createOrder
+      description: |
+        Creates a new order in "draft" status. An optional Idempotency-Key
+        header makes the request idempotent — if an order was already created
+        with the same key, the existing order is returned with HTTP 200.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "200":
+          description: Idempotent response — existing order returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Duplicate idempotency key with different request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      summary: Retrieve an order by ID
+      operationId: getOrder
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders/{orderId}/items:
+    post:
+      tags: [Items]
+      summary: Add a product line to an order
+      operationId: addItem
+      description: |
+        Adds a product line item to a draft order. The item's lineTotal is
+        computed as unitPrice × quantity.
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddItemRequest"
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+        "200":
+          description: Idempotent response — existing item returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}/items/{itemId}:
+    patch:
+      tags: [Items]
+      summary: Update an item's quantity
+      operationId: updateItem
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/ItemId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItemRequest"
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderItem"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Items]
+      summary: Remove an item from an order
+      operationId: removeItem
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/ItemId"
+      responses:
+        "204":
+          description: Item removed
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}/discounts:
+    post:
+      tags: [Discounts]
+      summary: Apply a discount to an order
+      operationId: addDiscount
+      description: |
+        Applies a percentage or fixed discount to a draft order.
+        Percentage discounts are expressed as a decimal between 0 and 1.
+        Fixed discounts are expressed as a monetary string.
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddDiscountRequest"
+      responses:
+        "201":
+          description: Discount applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+        "200":
+          description: Idempotent response — existing discount returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}/discounts/{discountId}:
+    delete:
+      tags: [Discounts]
+      summary: Remove a discount from an order
+      operationId: removeDiscount
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/DiscountId"
+      responses:
+        "204":
+          description: Discount removed
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}/calculate:
+    post:
+      tags: [Orders]
+      summary: Calculate order totals and finalize
+      operationId: calculateOrder
+      description: |
+        Computes subtotal, discount total, tax total, and grand total.
+        Transitions the order from "draft" to "calculated" status.
+        After calculation, the order cannot be modified unless reopened.
+        Repeating calculation on an unchanged order produces identical results.
+      parameters:
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Order calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Order is already calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+# ── Components ────────────────────────────────────────────────────────
+
+components:
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique order identifier
+    ItemId:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique item identifier
+    DiscountId:
+      name: discountId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Unique discount identifier
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+      description: |
+        Optional idempotency key. Requests with the same key return the
+        previously created resource instead of creating a duplicate.
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    # ── Request Schemas ───────────────────────────────────────────────
+
+    CreateOrderRequest:
+      type: object
+      required: [currency, taxRate]
+      properties:
+        currency:
+          type: string
+          enum: [USD, EUR, GBP]
+          description: ISO 4217 currency code
+        taxRate:
+          type: string
+          pattern: '^0\.\d+$'
+          description: Tax rate as a decimal string between 0 and 1
+          example: "0.08"
+      additionalProperties: false
+
+    AddItemRequest:
+      type: object
+      required: [productId, name, unitPrice, quantity]
+      properties:
+        productId:
+          type: string
+          minLength: 1
+          description: External product identifier
+        name:
+          type: string
+          minLength: 1
+          description: Human-readable product name
+        unitPrice:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Price per unit as a decimal string
+          example: "19.99"
+        quantity:
+          type: integer
+          minimum: 1
+          description: Number of units (must be positive integer)
+      additionalProperties: false
+
+    UpdateItemRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          description: New quantity (must be positive integer)
+      additionalProperties: false
+
+    AddDiscountRequest:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          percentage: "#/components/schemas/PercentageDiscountRequest"
+          fixed: "#/components/schemas/FixedDiscountRequest"
+      oneOf:
+        - $ref: "#/components/schemas/PercentageDiscountRequest"
+        - $ref: "#/components/schemas/FixedDiscountRequest"
+
+    PercentageDiscountRequest:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [percentage]
+        value:
+          type: string
+          pattern: '^(0(\.\d+)?|1(\.0+)?)$'
+          description: Discount percentage as decimal between 0 and 1
+          example: "0.10"
+      additionalProperties: false
+
+    FixedDiscountRequest:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [fixed]
+        value:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Fixed discount amount as a decimal string (non-negative)
+          example: "5.00"
+      additionalProperties: false
+
+    # ── Response Schemas ──────────────────────────────────────────────
+
+    Order:
+      type: object
+      required:
+        - id
+        - status
+        - currency
+        - items
+        - discounts
+        - taxRate
+        - subtotal
+        - discountTotal
+        - taxTotal
+        - grandTotal
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique order identifier
+        status:
+          type: string
+          enum: [draft, calculated]
+          description: Current order status
+        currency:
+          type: string
+          enum: [USD, EUR, GBP]
+          description: ISO 4217 currency code
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+          description: Line items in this order
+        discounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Discount"
+          description: Applied discounts
+        taxRate:
+          type: string
+          pattern: '^0\.\d+$'
+          description: Tax rate as a decimal string
+          example: "0.08"
+        subtotal:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Sum of all item line totals
+        discountTotal:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Sum of all discount amounts applied
+        taxTotal:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Tax amount (applied after discounts)
+        grandTotal:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Final total (subtotal - discountTotal + taxTotal)
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO 8601 creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 last update timestamp
+      additionalProperties: false
+
+    OrderItem:
+      type: object
+      required: [id, productId, name, unitPrice, quantity, lineTotal]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique item identifier
+        productId:
+          type: string
+          minLength: 1
+          description: External product identifier
+        name:
+          type: string
+          minLength: 1
+          description: Human-readable product name
+        unitPrice:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Price per unit as a decimal string
+        quantity:
+          type: integer
+          minimum: 1
+          description: Number of units
+        lineTotal:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: unitPrice × quantity
+      additionalProperties: false
+
+    Discount:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          percentage: "#/components/schemas/PercentageDiscount"
+          fixed: "#/components/schemas/FixedDiscount"
+      oneOf:
+        - $ref: "#/components/schemas/PercentageDiscount"
+        - $ref: "#/components/schemas/FixedDiscount"
+
+    PercentageDiscount:
+      type: object
+      required: [id, type, value]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique discount identifier
+        type:
+          type: string
+          enum: [percentage]
+        value:
+          type: string
+          pattern: '^(0(\.\d+)?|1(\.0+)?)$'
+          description: Discount percentage as decimal between 0 and 1
+      additionalProperties: false
+
+    FixedDiscount:
+      type: object
+      required: [id, type, value]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique discount identifier
+        type:
+          type: string
+          enum: [fixed]
+        value:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+          description: Fixed discount amount as a decimal string (non-negative)
+      additionalProperties: false
+
+    # ── Common Schemas ────────────────────────────────────────────────
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+        uptime:
+          type: number
+          description: Process uptime in seconds
+          example: 3600.5
+      additionalProperties: false
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code
+          example: "not_found"
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Order not found"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: JSON path to the invalid field
+              message:
+                type: string
+                description: Validation error message
+          description: Validation error details (only for 400 errors)
+      additionalProperties: false

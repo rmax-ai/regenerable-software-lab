@@ -1,0 +1,282 @@
+# Order-Pricing Domain Invariants — Machine-Readable
+# Version: 0.1.0
+# Source: SPEC.md §7
+# This file is the canonical machine-readable invariant definition.
+# It is read by the evaluator to verify implementations independently.
+
+invariants:
+  - id: I-01
+    name: "Positive Quantity"
+    description: "Quantity must be a positive integer (>= 1)"
+    scope:
+      - "OrderItem.quantity"
+      - "AddItemRequest.quantity"
+      - "UpdateItemRequest.quantity"
+    category: validation
+    test_type: boundary
+    negative_case:
+      input:
+        quantity: 0
+      expected_status: 400
+
+  - id: I-02
+    name: "Non-Negative Unit Price"
+    description: "Unit price must be >= 0"
+    scope:
+      - "OrderItem.unitPrice"
+      - "AddItemRequest.unitPrice"
+    category: validation
+    test_type: boundary
+    negative_case:
+      input:
+        unitPrice: "-1.00"
+      expected_status: 400
+
+  - id: I-03
+    name: "Tax Rate Range"
+    description: "Tax rate must be between 0 and 1 inclusive"
+    scope:
+      - "Order.taxRate"
+      - "CreateOrderRequest.taxRate"
+    category: validation
+    test_type: boundary
+    negative_case:
+      input:
+        taxRate: "1.01"
+      expected_status: 400
+    positive_case:
+      input:
+        taxRate: "1.00"
+      expected_status: 201
+
+  - id: I-04
+    name: "Percentage Discount Range"
+    description: "Percentage discounts must be between 0 and 1 inclusive"
+    scope:
+      - "Discount.value when type=percentage"
+    category: validation
+    test_type: boundary
+    negative_case:
+      input:
+        type: percentage
+        value: "1.01"
+      expected_status: 400
+    positive_case:
+      input:
+        type: percentage
+        value: "0.00"
+      expected_status: 201
+
+  - id: I-05
+    name: "Fixed Discount Non-Negative"
+    description: "Fixed discounts must be non-negative"
+    scope:
+      - "Discount.value when type=fixed"
+    category: validation
+    test_type: boundary
+    negative_case:
+      input:
+        type: fixed
+        value: "-1.00"
+      expected_status: 400
+
+  - id: I-06
+    name: "Discount Floor"
+    description: "Total discount must not reduce taxable amount below zero"
+    scope:
+      - "taxTotal calculation"
+    category: calculation
+    test_type: behavioral
+    scenario:
+      setup:
+        subtotal: "10.00"
+        discounts:
+          - type: fixed
+            value: "15.00"
+      expected:
+        discountTotal: "10.00"
+        taxableAmount: "0.00"
+        taxTotal: "0.00"
+
+  - id: I-07
+    name: "Tax After Discounts"
+    description: "Tax must be calculated after discounts are applied"
+    scope:
+      - "taxTotal calculation"
+    category: calculation
+    test_type: behavioral
+    scenario:
+      setup:
+        subtotal: "100.00"
+        discounts:
+          - type: percentage
+            value: "0.10"
+        taxRate: "0.08"
+      expected:
+        discountTotal: "10.00"
+        taxTotal: "7.20"
+        grandTotal: "97.20"
+      incorrect:
+        tax_before_discount:
+          taxTotal: "8.00"
+          grandTotal: "98.00"
+
+  - id: I-08
+    name: "Non-Negative Grand Total"
+    description: "Grand total must never be negative"
+    scope:
+      - "Order.grandTotal"
+    category: calculation
+    test_type: property
+    property: "For all valid orders, grandTotal >= 0"
+
+  - id: I-09
+    name: "Monetary Rounding"
+    description: "Monetary values rounded to currency precision (2 decimal places)"
+    scope:
+      - "All monetary fields"
+    category: calculation
+    test_type: behavioral
+    scenario:
+      setup:
+        unitPrice: "10.00"
+        quantity: 1
+        taxRate: "0.0833"
+      expected:
+        taxTotal: "0.83"
+
+  - id: I-10
+    name: "Calculation Idempotency"
+    description: "Repeating calculation on unchanged order produces identical results"
+    scope:
+      - "POST /orders/{orderId}/calculate"
+    category: calculation
+    test_type: behavioral
+    scenario:
+      action: calculate_twice
+      expected: "grandTotal unchanged on second call"
+
+  - id: I-11
+    name: "Request Idempotency"
+    description: "Idempotent requests do not create duplicate resources"
+    scope:
+      - "POST endpoints with Idempotency-Key"
+    category: state
+    test_type: behavioral
+    scenario:
+      action: post_with_same_key_twice
+      expected:
+        status: 200
+        resource_count: 1
+
+  - id: I-12
+    name: "Calculated Order Immutability"
+    description: "Calculated order cannot be modified unless reopened"
+    scope:
+      - "POST/PATCH/DELETE items and discounts on calculated orders"
+    category: state
+    test_type: behavioral
+    scenario:
+      setup: "order calculated"
+      action: add_item
+      expected_status: 409
+
+  - id: I-13
+    name: "Schema Compliance"
+    description: "All persisted order state must satisfy OpenAPI response schema"
+    scope:
+      - "All GET responses"
+      - "POST /orders/{orderId}/calculate response"
+    category: contract
+    test_type: schema
+    validation: openapi_response_validation
+
+  - id: I-14
+    name: "Error Response Safety"
+    description: "Error responses must not expose stack traces or environment details"
+    scope:
+      - "All error responses"
+    category: security
+    test_type: schema
+    allowed_fields:
+      - error
+      - message
+      - details
+    forbidden_fields:
+      - stack
+      - sql
+      - filePath
+      - env
+      - __proto__
+
+  - id: I-15
+    name: "Unique Identifiers"
+    description: "Generated identifiers must be unique within the test run"
+    scope:
+      - "Order.id"
+      - "OrderItem.id"
+      - "Discount.id"
+    category: contract
+    test_type: property
+    property: "UUIDs are unique within a single run"
+
+  - id: I-16
+    name: "Total Consistency"
+    description: "grandTotal = subtotal - discountTotal + taxTotal"
+    scope:
+      - "Order after calculation"
+    category: calculation
+    test_type: property
+    property: "grandTotal equals the algebraic sum of components"
+
+  - id: I-17
+    name: "Invalidation on Item Removal"
+    description: "Removing an item must invalidate previously calculated totals"
+    scope:
+      - "Order state after item deletion"
+    category: state
+    test_type: behavioral
+    scenario:
+      setup: "order calculated"
+      action: remove_item
+      expected: "order rejects modification or reflects changed state"
+
+  - id: I-18
+    name: "Deterministic Not-Found"
+    description: "Unknown identifiers produce deterministic not-found responses"
+    scope:
+      - "All endpoints with path parameters"
+    category: contract
+    test_type: behavioral
+    scenario:
+      action: get_nonexistent_order_twice
+      expected:
+        both_calls:
+          status: 404
+          error_body_identical: true
+
+# Categories used for grouping in reports
+categories:
+  validation:
+    - I-01
+    - I-02
+    - I-03
+    - I-04
+    - I-05
+  calculation:
+    - I-06
+    - I-07
+    - I-08
+    - I-09
+    - I-10
+    - I-16
+  state:
+    - I-11
+    - I-12
+    - I-17
+  contract:
+    - I-13
+    - I-15
+    - I-18
+  security:
+    - I-14
