@@ -156,9 +156,9 @@ importers:
 
   packages/harness-adapters/codex:
     dependencies:
-      '@rsl/harness-core':
+      '@rsl/benchmark-core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../benchmark-core
     devDependencies:
       typescript:
         specifier: ^5.7.0
@@ -195,9 +195,9 @@ importers:
 
   packages/harness-adapters/generic-cli:
     dependencies:
-      '@rsl/harness-core':
+      '@rsl/benchmark-core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../benchmark-core
     devDependencies:
       typescript:
         specifier: ^5.7.0
@@ -256,6 +256,9 @@ importers:
       '@rsl/benchmark-core':
         specifier: workspace:*
         version: link:../benchmark-core
+      '@rsl/evaluator':
+        specifier: workspace:*
+        version: link:../evaluator
       '@rsl/policies':
         specifier: workspace:*
         version: link:../policies

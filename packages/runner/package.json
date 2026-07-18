@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@rsl/benchmark-core": "workspace:*",
+    "@rsl/evaluator": "workspace:*",
     "@rsl/trace": "workspace:*",
     "@rsl/policies": "workspace:*"
   },
