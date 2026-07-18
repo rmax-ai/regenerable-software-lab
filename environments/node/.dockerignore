@@ -1,0 +1,36 @@
+# Dependencies — never ship node_modules from host
+node_modules/
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Runtime data from previous runs
+runs/
+results/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Development files
+*.md
+*.log
+.env*
+coverage/
+reports/
+.turbo/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDE and editor config
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
