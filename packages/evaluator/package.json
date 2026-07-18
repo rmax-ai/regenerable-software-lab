@@ -15,7 +15,14 @@
     "@rsl/benchmark-core": "workspace:*",
     "@rsl/trace": "workspace:*",
     "@rsl/metrics": "workspace:*",
-    "@rsl/policies": "workspace:*"
+    "@rsl/policies": "workspace:*",
+    "fastify": "^5.0.0",
+    "js-yaml": "^4.1.0"
   },
-  "devDependencies": { "typescript": "^5.7.0", "vitest": "^3.0.0" }
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
 }
