@@ -7,7 +7,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
-import { parse as parseYaml } from "js-yaml";
+import * as yaml from "js-yaml";
 import { z } from "zod";
 import {
   type RunConfiguration,
@@ -104,7 +104,7 @@ export class ExperimentRunner {
 
     let parsed: unknown;
     try {
-      parsed = parseYaml(raw);
+      parsed = yaml.load(raw);
     } catch (err: unknown) {
       throw new Error(
         `Failed to parse YAML manifest at ${path}: ${err instanceof Error ? err.message : String(err)}`,
