@@ -199,8 +199,6 @@ export class Runner {
         workspacePath,
         verificationResults,
         executionResult,
-        tracePath: join(workspacePath, "trace", "trace.jsonl"),
-        artifactsPath: join(workspacePath, "artifacts"),
         metrics: this.computeMetrics(
           startTime,
           executionResult,

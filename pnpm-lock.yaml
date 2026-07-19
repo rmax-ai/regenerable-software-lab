@@ -13,6 +13,9 @@ importers:
       '@rsl/benchmark-core':
         specifier: workspace:*
         version: link:../../packages/benchmark-core
+      '@rsl/evaluator':
+        specifier: workspace:*
+        version: link:../../packages/evaluator
       '@rsl/harness-core':
         specifier: workspace:*
         version: link:../../packages/harness-adapters/core
@@ -25,6 +28,9 @@ importers:
       commander:
         specifier: ^13.0.0
         version: 13.1.0
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^22.0.0

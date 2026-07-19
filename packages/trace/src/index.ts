@@ -1,3 +1,4 @@
 // @rsl/trace — Normalized JSON Lines trace collection
-export * from "./trace-writer.js";
-export * from "./event-types.js";
+
+export { TraceWriter } from "./trace-writer.js";
+export { TraceReader } from "./trace-reader.js";
