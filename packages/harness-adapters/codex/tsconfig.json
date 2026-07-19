@@ -13,6 +13,7 @@
     "src"
   ],
   "references": [
-    { "path": "../../benchmark-core" }
+    { "path": "../../benchmark-core" },
+    { "path": "../../harness-adapters/core" }
   ]
 }

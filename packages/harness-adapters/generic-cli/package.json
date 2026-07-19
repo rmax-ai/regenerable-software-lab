@@ -9,7 +9,8 @@
   "exports": { ".": "./dist/index.js" },
   "scripts": { "build": "tsc", "clean": "rm -rf dist", "lint": "echo 'lint ok'", "typecheck": "tsc --noEmit", "test": "echo 'test ok'" },
   "dependencies": {
-    "@rsl/benchmark-core": "workspace:*"
+    "@rsl/benchmark-core": "workspace:*",
+    "@rsl/harness-core": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

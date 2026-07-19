@@ -1,34 +1,25 @@
-# Compose file for local testing of isolated agent containers
+# Compose file for the Regenerable Software Lab node-runner container
 #
-# Usage:
-#   docker compose build          # Build the agent image
-#   docker compose up             # Run with default command
-#   docker compose run --rm agent bash   # Interactive shell
-#   docker compose run --rm agent node dist/index.js   # Run the CLI
-#
-# Security properties (SPEC.md §17, RESEARCH.md §4):
+# Security properties:
 #   - Non-root user (uid 1000)
 #   - Read-only root filesystem
-#   - Writable /workspace and /tmp (tmpfs-backed)
+#   - Writable /workspace volume
+#   - tmpfs-backed /tmp and /home/agent
 #   - No host Docker socket
 #   - No external network (network_mode: none)
-#   - CPU and memory limits (2GB mem, 2 CPUs)
-#   - dumb-init for PID 1 signal handling
+#   - CPU and memory limits
 #   - All capabilities dropped
-#   - No new privileges allowed
+#   - dumb-init for PID 1 signal handling
 
 services:
-  agent:
+  node-runner:
     build:
       context: ./node
       dockerfile: Dockerfile
-      args:
-        AGENT_UID: 1000
-        AGENT_GID: 1000
-    image: rsl-agent:latest
+    image: rsl-node-runner:dev
     user: "1000:1000"
 
-    # Read-only root filesystem prevents tampering at runtime
+    # Read-only root filesystem prevents runtime tampering
     read_only: true
 
     # Writable directories backed by tmpfs (memory only, no disk writes)
@@ -39,16 +30,10 @@ services:
     # Mount workspace as writable volume for agent output
     volumes:
       - type: volume
-        source: agent-workspace
+        source: runner-workspace
         target: /workspace
         volume:
           nocopy: true
-
-      # Mount spec assets as read-only (protected from agent modification)
-      - type: bind
-        source: ../spec
-        target: /spec
-        read_only: true
 
     # Air-gapped — no network access at all
     network_mode: "none"
@@ -81,7 +66,7 @@ services:
       - WORKSPACE=/workspace
       - TMPDIR=/tmp
 
-    # Health check — verify the entrypoint and node are functional
+    # Health check
     healthcheck:
       test: ["CMD-SHELL", "node --version > /dev/null 2>&1 && test -w /tmp"]
       interval: 30s
@@ -90,5 +75,5 @@ services:
       start_period: 10s
 
 volumes:
-  agent-workspace:
-    name: rsl-agent-workspace
+  runner-workspace:
+    name: rsl-runner-workspace

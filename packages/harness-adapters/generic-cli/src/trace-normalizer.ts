@@ -36,12 +36,12 @@ export function extractCommandMarkers(output: string): CommandMarker[] {
   const lines = output.split("\n");
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i]!;
     // Match lines starting with "$ " (shell command prompt)
     const match = line.match(/^\$\s+(.+)/);
     if (match) {
       markers.push({
-        command: match[1].trim(),
+        command: match[1]!.trim(),
         lineNumber: i + 1,
         rawLine: line,
       });
@@ -131,6 +131,7 @@ export function normalizeTrace(
   // 2. Extract command markers and emit a trace event per command.
   const markers = extractCommandMarkers(stdout);
   for (let i = 0; i < markers.length; i++) {
+    const marker = markers[i]!;
     events.push({
       timestamp: new Date().toISOString(),
       runId,
@@ -138,9 +139,9 @@ export function normalizeTrace(
       source: "shell",
       type: "command",
       payload: {
-        command: markers[i].command,
-        lineNumber: markers[i].lineNumber,
-        rawLine: markers[i].rawLine,
+        command: marker.command,
+        lineNumber: marker.lineNumber,
+        rawLine: marker.rawLine,
       },
     });
   }

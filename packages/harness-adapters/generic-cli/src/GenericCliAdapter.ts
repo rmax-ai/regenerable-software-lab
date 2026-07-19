@@ -114,7 +114,7 @@ export class GenericCliAdapter implements AgentHarness {
       : this.config.command.split(/\s+/);
 
     // Spawn the agent process in the workspace directory.
-    const child = spawn(cmd[0], cmd.slice(1), {
+    const child = spawn(cmd[0]!, cmd.slice(1), {
       cwd: workspacePath,
       env: {
         ...process.env,
@@ -122,7 +122,7 @@ export class GenericCliAdapter implements AgentHarness {
       },
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
-    });
+    }) as unknown as ChildProcess;
 
     this.processes.set(runId, child);
     this.startTimes.set(runId, Date.now());
