@@ -20,8 +20,8 @@ import {
   type HarnessConfiguration,
   type ModelConfiguration,
 } from "@rsl/benchmark-core";
-import { Evaluator, PROFILE_A_STAGES } from "@rsl/evaluator";
-import { createWorkspace, copyVisibleAssets, mountProtectedAssets } from "./workspace.js";
+import { Evaluator, PROFILE_A_STAGES, PROFILE_B_STAGES, PROFILE_C_STAGES } from "@rsl/evaluator";
+import { createWorkspace, copyVisibleAssets, mountProtectedAssets, findRepoRoot } from "./workspace.js";
 import {
   checkWallClock,
   checkModelUsage,
@@ -155,9 +155,13 @@ export class Runner {
 
     if (!budgetExceeded || config.limits.maxVerificationAttempts !== 0) {
       try {
+        const repoRoot = findRepoRoot(workspacePath);
+        const benchmarkDir = resolve(repoRoot, "benchmarks", config.benchmarkVersion);
         verificationResults = await this.runVerification(
           config.runId,
           workspacePath,
+          config.profile,
+          benchmarkDir,
         );
       } catch (err: unknown) {
         verificationResults = [
@@ -386,9 +390,9 @@ export class Runner {
   async runVerification(
     runId: string,
     workspacePath: string,
+    profile: "basic" | "behavioral" | "operational" = "basic",
+    benchmarkDir?: string,
   ): Promise<VerificationResult[]> {
-    // Verification runs against the source/ subdirectory where the agent
-    // placed its implementation.
     const sourceDir = join(workspacePath, "source");
 
     if (!existsSync(sourceDir)) {
@@ -397,8 +401,8 @@ export class Runner {
         runId,
         sequence: this.nextSeq(),
         source: "runner",
-        type: "verification_skipped",
-        payload: { reason: "source directory does not exist", sourceDir },
+        type: "verification_error",
+        payload: { error: `Source directory not found: ${sourceDir}` },
       });
       return [];
     }
@@ -409,11 +413,18 @@ export class Runner {
       sequence: this.nextSeq(),
       source: "runner",
       type: "verification_started",
-      payload: { workspacePath },
+      payload: { workspacePath, profile, benchmarkDir },
     });
 
-    const evaluator = new Evaluator(sourceDir);
-    const results = await evaluator.evaluate(PROFILE_A_STAGES);
+    const stages =
+      profile === "operational"
+        ? PROFILE_C_STAGES
+        : profile === "behavioral"
+          ? PROFILE_B_STAGES
+          : PROFILE_A_STAGES;
+
+    const evaluator = new Evaluator(sourceDir, benchmarkDir);
+    const results = await evaluator.evaluate(stages);
 
     return results;
   }

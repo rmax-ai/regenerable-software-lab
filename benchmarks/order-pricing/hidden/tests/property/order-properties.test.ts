@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import * as fc from "fast-check";
 import { Decimal } from "decimal.js";
-import { buildApp } from "../../../reference-impl/src/server.js";
+import { buildApp } from "@candidate/server.js";
 import type { FastifyInstance } from "fastify";
 import {
   arbCreateOrderParams,

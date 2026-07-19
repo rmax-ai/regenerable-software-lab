@@ -21,7 +21,7 @@ import {
   calculateTax,
   calculateGrandTotal,
   calculateOrderTotals,
-} from "../../../reference-impl/src/calculator.js";
+} from "@candidate/calculator.js";
 import {
   arbMonetaryString,
   arbAddDiscountParams,

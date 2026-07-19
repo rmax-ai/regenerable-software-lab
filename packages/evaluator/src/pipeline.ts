@@ -6,17 +6,6 @@ import type { StageFunction } from "./stages.js";
 
 // ── Stage Definition ────────────────────────────────────────────────────
 
-/**
- * Describes a single stage within the verification pipeline.
- *
- * @property stage   - Numeric identifier (1-12).
- * @property name    - Human-readable label.
- * @property fn      - The async function that executes the stage.
- * @property fatal   - If `true`, a failure in this stage stops the pipeline.
- * @property dependsOn - Optional list of stage numbers that must have passed
- *                       before this stage can run. If any dependency failed
- *                       or was skipped, this stage is also skipped.
- */
 export interface StageDefinition {
   stage: number;
   name: string;
@@ -27,28 +16,10 @@ export interface StageDefinition {
 
 // ── Pipeline Runner ─────────────────────────────────────────────────────
 
-/**
- * Run a sequence of verification stages against a candidate workspace.
- *
- * Behaviour (fail-soft per SPEC.md §19.2):
- *  - Stages run in order as given.
- *  - If a stage's dependency failed, the stage is skipped rather than run.
- *  - If a **fatal** stage fails, the pipeline stops immediately (no further
- *    stages execute), but results collected so far are returned.
- *  - If a **non-fatal** stage fails, the pipeline continues with the next
- *    stage.
- *  - Exceptions during stage execution are caught and converted to an
- *    `"error"` status result; the pipeline behaviour then depends on the
- *    stage's `fatal` flag.
- *
- * @param workspacePath - Absolute path to the candidate workspace.
- * @param stages        - Ordered list of stage definitions to execute.
- * @returns An array of `VerificationResult` entries, one per stage that
- *          either ran or was deterministically skipped.
- */
 export async function runPipeline(
   workspacePath: string,
   stages: StageDefinition[],
+  benchmarkDir?: string,
 ): Promise<VerificationResult[]> {
   const results: StageResult[] = [];
 
@@ -57,7 +28,6 @@ export async function runPipeline(
     if (def.dependsOn && def.dependsOn.length > 0) {
       const depsFailed = def.dependsOn.some((depStage) => {
         const depResult = results.find((r) => r.stage === depStage);
-        // If a dependency wasn't reached (didn't run) or failed/skipped/errored
         return depResult ? depResult.status !== "passed" : true;
       });
 
@@ -77,7 +47,7 @@ export async function runPipeline(
     // ── Execute ────────────────────────────────────────────────────────
     let result: StageResult;
     try {
-      result = await def.fn(workspacePath);
+      result = await def.fn(workspacePath, benchmarkDir);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       result = {
@@ -95,7 +65,6 @@ export async function runPipeline(
 
     // ── Fatal failure check ────────────────────────────────────────────
     if (result.status !== "passed" && def.fatal) {
-      // Mark remaining stages as skipped without executing them
       const remaining = stages.slice(results.length);
       for (const r of remaining) {
         results.push({
@@ -111,19 +80,11 @@ export async function runPipeline(
     }
   }
 
-  // ── Convert to shared VerificationResult ─────────────────────────────
   return results.map(toVerificationResult);
 }
 
 // ── Conversion ──────────────────────────────────────────────────────────
 
-/**
- * Convert an internal `StageResult` to the shared `VerificationResult` type.
- *
- * The `stage` field is stringified (shared type uses `string`).
- * Timestamps are generated at conversion time since stages record duration
- * rather than absolute timestamps.
- */
 function toVerificationResult(sr: StageResult): VerificationResult {
   const now = new Date().toISOString();
   return {

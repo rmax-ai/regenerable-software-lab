@@ -8,7 +8,7 @@
 // zero-priced items.
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { buildApp } from "../../reference-impl/src/server.js";
+import { buildApp } from "@candidate/server.js";
 import type { FastifyInstance } from "fastify";
 
 let app: FastifyInstance;

@@ -1,31 +1,63 @@
-# MVP Experiment Manifest — Regenerable Software Lab
-# SPEC.md §28 — Experiment Manifest
+# MVP Experiment — Regenerable Software Lab
 #
-# Full matrix: 2 profiles x 2 models x 2 harnesses x 3 seeds = 24 runs
+# This manifest defines the minimal reproducible experiment for the
+# order-pricing benchmark (SPEC.md §38).
+#
+# To run:
+#   rsl experiment experiments/configs/mvp.yaml
+#
+# The experiment matrix expands to:
+#   profiles (2) × models (1) × harnesses (1) × seeds (3) = 6 runs
+#
+# Third-party reproducibility:
+#   1. Clone the repository
+#   2. pnpm install
+#   3. rsl experiment experiments/configs/mvp.yaml
+#   4. rsl compare experiments/output/mvp/
+#   5. rsl report experiments/output/mvp/
+#
+# After connecting a real AI coding agent (Codex, Droid, etc.), add
+# its harness ID and model to the matrices below and re-run.
 
-id: mvp-001
+id: mvp
 benchmark: order-pricing
-benchmark_version: 0.1.0
+benchmark_version: order-pricing
 
+# Verification profiles to test against
+#   basic      — Stages 1-6 (Install, Build, Lint, Typecheck, Public Tests, Contract)
+#   behavioral — Stages 1-9 (+ Hidden Tests, Property Tests, Mutation Testing)
+#   operational— Stages 1-12 (+ Policy checks — planned, not yet implemented)
 profiles:
   - basic
   - behavioral
 
+# Model configurations to test
+# Each model is tested against every profile × harness × seed combination.
 models:
-  - provider: openai
-    model: gpt-5.6
-  - provider: anthropic
-    model: claude-sonnet
+  # Fake harness uses no real model; placeholder for inline runs.
+  - provider: fake
+    model: inline
 
+# Harness adapters to use
+#   fake      — deterministic fake harness with 8 scenarios (MVP)
+#   codex     — OpenAI Codex CLI (requires API key)
+#   generic-cli — Generic CLI adapter for any coding agent
+#
+# Uncomment codex and add API key config to use a real agent:
+# harnesses: [fake, codex]
 harnesses:
-  - codex
-  - generic-cli
+  - fake
 
+# Seeds for reproducibility
+# Multiple seeds enable statistical comparison across runs.
 seeds:
-  - 11
-  - 22
-  - 33
+  - 42
+  - 420
+  - 1337
 
+# Resource limits per run
 limits:
-  wall_clock_seconds: 1800
-  max_cost_usd: 10
+  wall_clock_seconds: 1800  # 30 minutes per run
+  max_cost_usd: 5.00        # Cost cap per run
+  max_model_calls: 100      # Max model API calls
+  max_disk_mb: 1024         # Max workspace disk usage

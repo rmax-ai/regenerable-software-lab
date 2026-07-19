@@ -160,7 +160,7 @@ export function mountProtectedAssets(
  *
  * Falls back to the workspace path itself if no root is found.
  */
-function findRepoRoot(workspacePath: string): string {
+export function findRepoRoot(workspacePath: string): string {
   let current = resolve(workspacePath);
 
   while (true) {

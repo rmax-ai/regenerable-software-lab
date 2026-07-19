@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: tsc -b
+
+      - name: Public tests (reference impl)
+        run: pnpm --filter reference-impl test
+
+      - name: Hidden tests (order-pricing)
+        run: |
+          cd benchmarks/order-pricing/hidden
+          npx vitest run --config vitest.config.ts
+
+      - name: Property tests (order-pricing)
+        run: |
+          cd benchmarks/order-pricing/hidden
+          TEST_MODE=property npx vitest run --config vitest.config.ts
