@@ -18,18 +18,20 @@ export const traceCommand = new Command("trace")
     try {
       let tracePath = resolve(traceArg);
 
-      if (!existsSync(tracePath)) {
-        // Maybe it's a workspace directory
-        const altPath = resolve(traceArg, "trace", "trace.jsonl");
-        if (existsSync(altPath)) {
-          tracePath = altPath;
-        } else {
-          console.error(
-            `rsl trace: trace file not found: ${tracePath}`,
-          );
-          process.exitCode = 1;
-          return;
+      // If it's a directory, look for trace/trace.jsonl inside
+      if (existsSync(tracePath)) {
+        const stat = await import("node:fs/promises").then(m => m.stat(tracePath));
+        if (stat.isDirectory()) {
+          tracePath = resolve(tracePath, "trace", "trace.jsonl");
         }
+      }
+
+      if (!existsSync(tracePath)) {
+        console.error(
+          `rsl trace: trace file not found: ${tracePath}`,
+        );
+        process.exitCode = 1;
+        return;
       }
 
       const filterType = options.filter as string | undefined;

@@ -35,9 +35,9 @@ const INLINE_HARNESS = {
 export const runCommand = new Command("run")
   .description("Run a single benchmark")
   .argument("<benchmark-id>", "Benchmark identifier to execute")
-  .requiredOption(
-    "-h, --harness <module>",
-    "Harness adapter module path (requires default export implementing AgentHarness)",
+  .option(
+    "--harness <module>",
+    "Harness adapter module path (defaults to inline no-op harness)",
   )
   .option(
     "-c, --config <path>",
@@ -46,6 +46,7 @@ export const runCommand = new Command("run")
   .option("-s, --seed <number>", "Random seed for reproducibility")
   .option("--model <provider>", "Model provider (e.g. openai, anthropic)")
   .option("--model-name <name>", "Model name (e.g. gpt-4o, claude-3-opus)")
+  .option("--profile <profile>", "Verification profile (basic|behavioral|operational)", "basic")
   .option("--wall-clock <seconds>", "Wall clock limit in seconds", "600")
   .option("--verbose", "Enable verbose logging", false)
   .action(async (benchmarkId: string, options: Record<string, unknown>) => {
@@ -72,9 +73,9 @@ export const runCommand = new Command("run")
           runId: crypto.randomUUID(),
           benchmarkVersion: benchmarkId,
           applicationId: benchmarkId,
-          profile: "basic",
+          profile: (options.profile as string) ?? "basic",
           harness: {
-            id: (options.model as string) ?? "default",
+            id: "inline",
           },
           model: {
             provider: (options.model as string) ?? "unknown",

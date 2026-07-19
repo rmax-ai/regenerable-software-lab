@@ -2,7 +2,7 @@
 // Display or export benchmark run reports
 
 import { Command } from "commander";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 interface RunReport {
@@ -22,10 +22,11 @@ interface RunReport {
 function loadReport(pathOrId: string): RunReport {
   const resolvedPath = resolve(pathOrId);
 
-  if (existsSync(resolvedPath)) {
+  if (existsSync(resolvedPath) && !statSync(resolvedPath).isDirectory()) {
     return JSON.parse(readFileSync(resolvedPath, "utf-8")) as RunReport;
   }
 
+  // If it's a directory, look for artifacts/run-report.json inside
   const reportPath = resolve(pathOrId, "artifacts", "run-report.json");
   if (existsSync(reportPath)) {
     return JSON.parse(readFileSync(reportPath, "utf-8")) as RunReport;

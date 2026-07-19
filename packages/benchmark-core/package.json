@@ -5,9 +5,9 @@
   "description": "Shared types, configuration parsing, and schema definitions",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./schemas": "./src/schemas.ts",
-    "./types": "./src/types.ts"
+    ".": "./dist/index.js",
+    "./schemas": "./dist/schemas.js",
+    "./types": "./dist/types.js"
   },
   "scripts": {
     "build": "tsc",
