@@ -9,3 +9,10 @@ reports/*.json
 .env.local
 .coverage/
 .turbo/
+.pnpm-store/
+.pnpm-debug.log*
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

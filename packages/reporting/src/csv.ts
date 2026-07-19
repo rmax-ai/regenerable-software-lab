@@ -6,13 +6,17 @@ import type { RunEntry } from "./markdown.js";
  * Generate a CSV string with one header row and one data row per run.
  *
  * Columns cover correctness, efficiency, safety, robustness, and evidence
- * metrics in a flat structure.
+ * metrics in a flat structure, plus model/harness/profile metadata if available.
  */
 export function generateCsvResults(runs: RunEntry[]): string {
   // ── Header ──────────────────────────────────────────────────────────
   const headers = [
     "runId",
     "label",
+    "modelProvider",
+    "modelName",
+    "harness",
+    "profile",
     "publicTestPassRate",
     "hiddenTestPassRate",
     "propertyTestPassRate",
@@ -44,6 +48,10 @@ export function generateCsvResults(runs: RunEntry[]): string {
     const row = [
       run.runId,
       run.label ?? "",
+      run.modelProvider ?? "",
+      run.modelName ?? "",
+      run.harness ?? "",
+      run.profile ?? "",
       m.correctness.publicTestPassRate,
       m.correctness.hiddenTestPassRate,
       m.correctness.propertyTestPassRate,

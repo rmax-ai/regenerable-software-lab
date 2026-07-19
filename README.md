@@ -44,12 +44,105 @@ regenerable-software-lab/
 
 ## Quickstart
 
+### Prerequisites
+
+- **Node.js** >= 24.0.0
+- **pnpm** >= 10.0.0
+
+### Clone and Install
+
 ```bash
-# Coming in Phase 1 — for now, read the docs:
-cat SPEC.md               # Full specification
-cat docs/ARCHITECTURE.md  # System design
-cat docs/ROADMAP.md       # Implementation plan
+git clone https://github.com/rmax-ai/regenerable-software-lab.git
+cd regenerable-software-lab
+pnpm install
+pnpm build
 ```
+
+### Running the Reference Implementation
+
+The order-pricing benchmark includes a hand-written reference implementation that passes all verification profiles:
+
+```bash
+cd benchmarks/order-pricing/reference-impl
+pnpm build
+```
+
+Start the server:
+
+```bash
+pnpm start
+```
+
+The API serves on `http://localhost:3000` with endpoints for orders, items, discounts, and health.
+
+### Running Tests
+
+**Public tests** (visible to agents):
+
+```bash
+cd benchmarks/order-pricing/reference-impl
+pnpm test
+```
+
+**Hidden tests** (not visible to agents, executed outside the workspace):
+
+```bash
+# Hidden integration and edge-case tests
+cd benchmarks/order-pricing/hidden/tests
+pnpm vitest run --config vitest.config.ts
+
+# Property-based tests
+pnpm vitest run --config vitest.config.ts --project property
+```
+
+**Mutation tests** (StrykerJS):
+
+```bash
+pnpm test:mutation
+```
+
+### Running the Fake Harness
+
+The fake harness simulates agent behavior deterministically without real model calls. It supports multiple scenarios for CI testing:
+
+```bash
+# Default scenario (successful implementation)
+SCENARIO=success pnpm --filter @rsl/harness-fake exec vitest run
+
+# Try other scenarios:
+SCENARIO=buildFailure pnpm --filter @rsl/harness-fake exec vitest run
+SCENARIO=timeout pnpm --filter @rsl/harness-fake exec vitest run
+SCENARIO=policyViolation pnpm --filter @rsl/harness-fake exec vitest run
+```
+
+Available scenarios: `success`, `buildFailure`, `timeout`, `policyViolation`, `falseClaim`, `budgetExhausted`, `partialImpl`, `repeatedCommands`.
+
+Set via `SCENARIO` environment variable or constructor argument.
+
+### Running All Verify Checks
+
+From the repository root:
+
+```bash
+pnpm typecheck   # TypeScript type checking
+pnpm build       # Build all workspace packages
+pnpm lint        # Lint checking
+```
+
+## Documentation Map
+
+| Document | Purpose |
+|----------|---------|
+| [SPEC.md](SPEC.md) | Canonical specification -- ground truth reference |
+| [AGENTS.md](AGENTS.md) | Conventions for AI coding agents working on this project |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, components, data flow |
+| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Threats from agents and threats to validity |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Phased implementation plan with acceptance criteria |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decision records |
+| [docs/RESEARCH.md](docs/RESEARCH.md) | Language/framework research and best practices |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | How to contribute: benchmarks, adapters, experiments |
+| [docs/TYPESCRIPT_DEVELOPMENT.md](docs/TYPESCRIPT_DEVELOPMENT.md) | TypeScript development conventions |
+| [docs/TYPESCRIPT_ARCHITECTURE.md](docs/TYPESCRIPT_ARCHITECTURE.md) | TypeScript architecture guidelines |
 
 ## Research
 
@@ -76,14 +169,3 @@ The project produces four publishable artifacts:
 ## License
 
 MIT — see [LICENSE](LICENSE)
-
-## Documentation Map
-
-| Document | Purpose |
-|----------|---------|
-| [SPEC.md](SPEC.md) | Canonical specification — ground truth reference |
-| [AGENTS.md](AGENTS.md) | Conventions for AI coding agents working on this project |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, components, data flow |
-| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Threats from agents and threats to validity |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Phased implementation plan with acceptance criteria |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decision records |
