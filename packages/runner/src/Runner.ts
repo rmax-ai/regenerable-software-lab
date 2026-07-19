@@ -7,7 +7,7 @@
 //  4. run verification (evaluator pipeline)
 //  5. store artifacts, produce final report
 
-import { existsSync, mkdirSync, writeFileSync, renameSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, renameSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import {
   type RunConfiguration,
@@ -88,13 +88,26 @@ export class Runner {
       config.benchmarkVersion,
     );
 
+    // Compute benchmark root for task prompt and verification
+    const repoRoot = findRepoRoot(workspacePath);
+    const benchmarkDir = resolve(repoRoot, "benchmarks", config.benchmarkVersion);
+
+    // Load the canonical task prompt
+    let taskPrompt = "";
+    const taskPath = resolve(benchmarkDir, "task.md");
+    if (existsSync(taskPath)) {
+      taskPrompt = readFileSync(taskPath, "utf-8");
+      // Also copy task.md into the workspace so the agent can reference it
+      writeFileSync(join(workspacePath, "source", "TASK.md"), taskPrompt, "utf-8");
+    }
+
     this.recordEvent({
       timestamp: new Date().toISOString(),
       runId: config.runId,
       sequence: this.nextSeq(),
       source: "runner",
       type: "workspace_created",
-      payload: { workspacePath },
+      payload: { workspacePath, benchmarkDir },
     });
 
     // ── Phase 2: Agent Execution ─────────────────────────────────────
@@ -105,6 +118,7 @@ export class Runner {
         config.runId,
         harness,
         workspacePath,
+        taskPrompt,
       );
     } catch (err: unknown) {
       executionResult = {
@@ -155,8 +169,6 @@ export class Runner {
 
     if (!budgetExceeded || config.limits.maxVerificationAttempts !== 0) {
       try {
-        const repoRoot = findRepoRoot(workspacePath);
-        const benchmarkDir = resolve(repoRoot, "benchmarks", config.benchmarkVersion);
         verificationResults = await this.runVerification(
           config.runId,
           workspacePath,
@@ -267,6 +279,7 @@ export class Runner {
     runId: string,
     harness: AgentHarness,
     workspacePath: string,
+    taskPrompt: string,
   ): Promise<ExecutionResult> {
     this.recordEvent({
       timestamp: new Date().toISOString(),
@@ -281,8 +294,8 @@ export class Runner {
     const preparedRun = await harness.prepare({
       runId,
       workspacePath,
-      taskPrompt: "", // populated by harness based on benchmark config
-      model: {} as ModelConfiguration, // populated from config by caller
+      taskPrompt,
+      model: {} as ModelConfiguration,
       limits: {} as RunLimits,
       environment: process.env as Record<string, string>,
     });

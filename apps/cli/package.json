@@ -5,7 +5,7 @@
   "description": "rsl CLI — Regenerable Software Lab benchmark runner",
   "type": "module",
   "main": "./dist/index.js",
-  "bin": { "rsl": "./dist/cli.js" },
+  "bin": { "rsl": "./dist/main.js" },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
@@ -16,7 +16,9 @@
   "dependencies": {
     "@rsl/benchmark-core": "workspace:*",
     "@rsl/evaluator": "workspace:*",
+    "@rsl/harness-codex": "workspace:*",
     "@rsl/harness-core": "workspace:*",
+    "@rsl/harness-fake": "workspace:*",
     "@rsl/reporting": "workspace:*",
     "@rsl/runner": "workspace:*",
     "commander": "^13.0.0",
