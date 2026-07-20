@@ -4,6 +4,8 @@
 // wall-clock, model-usage, and disk-space limits per run.
 
 import type { RunLimits, ModelUsage } from "@rsl/benchmark-core";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 // ── Exports ─────────────────────────────────────────────────────────────
 
@@ -159,8 +161,6 @@ export function checkDiskUsage(
  * nature of budget checks. Returns 0 if the path does not exist.
  */
 function getDirectorySizeMb(dirPath: string): number {
-  const fs = require("node:fs");
-  const path = require("node:path");
 
   let totalBytes = 0;
 
