@@ -1,0 +1,17 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2024",
+    "strict": true
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../../benchmark-core" },
+    { "path": "../../harness-adapters/core" }
+  ]
+}

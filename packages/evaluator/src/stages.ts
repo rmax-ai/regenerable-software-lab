@@ -166,7 +166,9 @@ export async function mutationTestStage(
     };
   }
 
-  const sourceDir = join(workspacePath, "source");
+  // workspacePath is already the agent's source directory (set by runner).
+  // Do NOT append "source" again.
+  const sourceDir = workspacePath;
   const strykerConfig = resolve(benchmarkDir, "hidden", "stryker", "stryker.config.mjs");
 
   if (!existsSync(strykerConfig)) {
@@ -251,7 +253,9 @@ function runExternalVitestStage(
 
   const hiddenDir = resolve(benchmarkDir, "hidden");
   const vitestConfig = resolve(hiddenDir, "vitest.config.ts");
-  const sourceDir = resolve(workspacePath, "source");
+  // workspacePath is already the agent's source directory (set by runner).
+  // Do NOT append "source" again — that produces a double-nested path.
+  const sourceDir = workspacePath;
 
   if (!existsSync(vitestConfig)) {
     return {
@@ -278,16 +282,47 @@ function runExternalVitestStage(
   const start = performance.now();
 
   try {
+    // Run vitest from the agent's source directory so vitest/config resolves.
+    // The vitest config file path is absolute, so cwd doesn't affect config loading.
+    //
+    // CANDIDATE_SRC: point to the agent's src/ subdirectory if it exists
+    // (agents typically generate source in src/), otherwise use the root.
+    const candidateSrc = existsSync(join(sourceDir, "src"))
+      ? join(sourceDir, "src")
+      : sourceDir;
+
+    // Property tests need fast-check, which the agent may not have installed.
+    // Install it best-effort — failure here is not a verification failure.
+    if (testMode === "property") {
+      try {
+        execSync("pnpm add -D fast-check", {
+          cwd: sourceDir,
+          stdio: "pipe",
+          timeout: 30_000,
+        });
+      } catch {
+        // fast-check unavailable — property tests will report import errors.
+      }
+    }
+
+    // Vitest resolves modules from its config root (hidden dir), not cwd.
+    // Use the vitest binary from the agent's node_modules so Vite can
+    // resolve fast-check, decimal.js, and other packages from there too.
+    const vitestBin = existsSync(join(sourceDir, "node_modules", ".bin", "vitest"))
+      ? join(sourceDir, "node_modules", ".bin", "vitest")
+      : "npx vitest";
+
     execSync(
-      `npx vitest run --config "${vitestConfig}"`,
+      `"${vitestBin}" run --config "${vitestConfig}"`,
       {
-        cwd: hiddenDir,
+        cwd: sourceDir,
         stdio: "pipe",
         timeout: STAGE_TIMEOUT,
         env: {
           ...process.env,
-          CANDIDATE_SRC: sourceDir,
+          CANDIDATE_SRC: candidateSrc,
           TEST_MODE: testMode,
+          AGENT_NODE_MODULES: join(sourceDir, "node_modules"),
         },
       },
     );

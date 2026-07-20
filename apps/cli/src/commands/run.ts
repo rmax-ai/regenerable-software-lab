@@ -13,6 +13,7 @@ import { Runner } from "@rsl/runner";
 const HARNESS_REGISTRY: Record<string, string> = {
   fake: "@rsl/harness-fake",
   codex: "@rsl/harness-codex",
+  droid: "@rsl/harness-droid",
   "generic-cli": "@rsl/harness-generic-cli",
   claude: "@rsl/harness-claude-code",
 };

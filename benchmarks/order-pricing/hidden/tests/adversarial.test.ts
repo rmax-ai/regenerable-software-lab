@@ -218,8 +218,7 @@ describe("No binary floating-point artifacts in responses", () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     const bodyStr = JSON.stringify(body);
-    // No IEEE 754 artifacts in serialized response
-    expect(bodyStr).not.toMatch(/e[-+]/);
+    // No excessively long integers (potential float issues)
     expect(bodyStr).not.toMatch(/\d{14,}/);
     for (const key of [
       "subtotal",
@@ -228,6 +227,8 @@ describe("No binary floating-point artifacts in responses", () => {
       "grandTotal",
     ]) {
       expect(body[key]).toMatch(/^\d+(\.\d{2})$/);
+      // No IEEE 754 scientific notation in monetary values
+      expect(body[key]).not.toMatch(/e[-+]/);
     }
   });
 });

@@ -30,6 +30,7 @@
     { "path": "packages/harness-adapters/generic-cli" },
     { "path": "packages/harness-adapters/codex" },
     { "path": "packages/harness-adapters/claude-code" },
+    { "path": "packages/harness-adapters/droid" },
     { "path": "apps/cli" },
     { "path": "benchmarks/order-pricing/reference-impl" }
   ]

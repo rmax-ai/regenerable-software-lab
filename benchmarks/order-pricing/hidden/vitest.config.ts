@@ -10,6 +10,10 @@ const candidateSrc =
   process.env.CANDIDATE_SRC ||
   path.resolve(__dirname, "..", "reference-impl", "src");
 
+// AGENT_NODE_MODULES: agent's node_modules dir for packages the agent
+// installed but aren't in this hidden directory (e.g. decimal.js).
+const agentModules = process.env.AGENT_NODE_MODULES;
+
 // TEST_MODE: "hidden" | "property" | "all" — controls which tests run
 const testMode = process.env.TEST_MODE || "hidden";
 
@@ -24,6 +28,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@candidate": candidateSrc,
+      // Resolve packages from agent's node_modules when available.
+      // This lets property tests find fast-check, decimal.js, etc.
+      ...(agentModules
+        ? {
+            "fast-check": path.join(agentModules, "fast-check"),
+            "decimal.js": path.join(agentModules, "decimal.js"),
+          }
+        : {}),
     },
   },
   test: {

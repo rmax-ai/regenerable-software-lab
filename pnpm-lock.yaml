@@ -25,6 +25,9 @@ importers:
       '@rsl/harness-core':
         specifier: workspace:*
         version: link:../../packages/harness-adapters/core
+      '@rsl/harness-droid':
+        specifier: workspace:*
+        version: link:../../packages/harness-adapters/droid
       '@rsl/harness-fake':
         specifier: workspace:*
         version: link:../../packages/harness-adapters/fake
@@ -198,6 +201,25 @@ importers:
         specifier: ^3.0.0
         version: 3.2.7(@types/node@22.20.1)
 
+  packages/harness-adapters/droid:
+    dependencies:
+      '@rsl/benchmark-core':
+        specifier: workspace:*
+        version: link:../../benchmark-core
+      '@rsl/harness-core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.1)
+
   packages/harness-adapters/fake:
     dependencies:
       '@rsl/benchmark-core':
@@ -289,7 +311,16 @@ importers:
       '@rsl/trace':
         specifier: workspace:*
         version: link:../trace
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.3.0
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
     devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.0
+        version: 4.0.9
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

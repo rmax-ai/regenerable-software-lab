@@ -37,10 +37,12 @@ export async function validateContract(workspacePath: string): Promise<StageResu
       return fail("OpenAPI spec could not be parsed", "CONTRACT_VIOLATION", start);
     }
 
-    // ── 2. Discover GET routes ────────────────────────────────────────
+    // ── 2. Discover GET routes (skip parameterized paths) ──────────────
     const getRoutes: { path: string; responseSchema?: unknown; statusCode: string }[] = [];
     for (const [routePath, methods] of Object.entries(spec.paths)) {
       if (!methods) continue;
+      // Skip routes with path parameters — they need fixtures to test meaningfully.
+      if (routePath.includes("{")) continue;
       const getOp = (methods as Record<string, unknown>)["get"] as
         | { responses?: Record<string, unknown> }
         | undefined;
@@ -68,13 +70,13 @@ export async function validateContract(workspacePath: string): Promise<StageResu
 
     try {
       // ── 4. Probe each route ──────────────────────────────────────────
-      const baseUrl = "http://localhost:3000";
-      let allPassed = true;
-      let testedCount = 0;
-      const errors: string[] = [];
+    const baseUrl = "http://localhost:3000";
+    let allPassed = true;
+    let testedCount = 0;
+    const errors: string[] = [];
 
-      for (const route of getRoutes) {
-        const url = `${baseUrl}${route.path}`;
+    for (const route of getRoutes) {
+      const url = `${baseUrl}${route.path}`;
         try {
           const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
           testedCount++;
@@ -184,12 +186,11 @@ function resolveSpecPath(workspacePath: string): string {
 /**
  * Start the application server as a child process.
  *
- * Tries `pnpm start` first, then `node dist/server.js`.
+ * Tries `pnpm start` first, then uses dynamic import to call buildApp()
+ * directly (avoiding argv[1] checks that break with `node dist/server.js`).
  * Returns `null` on failure, the child process reference on success.
  */
 async function startServer(workspacePath: string, specPath: string): Promise<ChildProcess | null> {
-  const serverEntry = resolve(workspacePath, "dist", "server.js");
-
   // Try pnpm start
   try {
     const proc = spawn("pnpm", ["start"], {
@@ -203,24 +204,29 @@ async function startServer(workspacePath: string, specPath: string): Promise<Chi
     const ready = await waitForServer("http://localhost:3000/health", 15_000);
     if (ready) return proc;
 
-    // If pnpm start didn't work, try direct node invocation
+    // If pnpm start didn't work, try dynamic import
     killServer(proc);
   } catch {
     // fall through
   }
 
-  // Fallback: try `node dist/server.js`
+  // Fallback: use dynamic import to call buildApp().listen() directly.
+  // This avoids brittle argv[1] checks in agent-generated server.ts files.
+  const distServer = resolve(workspacePath, "dist", "server.js");
   try {
-    // Check if the server entry exists
-    readFileSync(serverEntry);
+    readFileSync(distServer);
   } catch {
     return null;
   }
 
-  const proc = spawn("node", [serverEntry], {
+  const startupScript = `import { buildApp } from "./dist/server.js";
+const app = buildApp();
+const port = parseInt(process.env.PORT ?? "3000", 10);
+await app.listen({ port, host: "0.0.0.0" });`;
+
+  const proc = spawn("node", ["--input-type=module", "--eval", startupScript], {
     cwd: workspacePath,
     stdio: "pipe",
-    shell: true,
     env: { ...process.env, PORT: "3000", NODE_ENV: "development" },
   });
 

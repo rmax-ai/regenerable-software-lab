@@ -18,6 +18,7 @@
     "@rsl/evaluator": "workspace:*",
     "@rsl/harness-codex": "workspace:*",
     "@rsl/harness-core": "workspace:*",
+    "@rsl/harness-droid": "workspace:*",
     "@rsl/harness-fake": "workspace:*",
     "@rsl/reporting": "workspace:*",
     "@rsl/runner": "workspace:*",

@@ -1,0 +1,26 @@
+{
+  "name": "@rsl/harness-droid",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Factory Droid CLI harness adapter for Regenerable Software Lab",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "echo 'lint ok'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'test ok'"
+  },
+  "dependencies": {
+    "@rsl/benchmark-core": "workspace:*",
+    "@rsl/harness-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
