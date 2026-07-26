@@ -1,9 +1,16 @@
 <script lang="ts">
-  import { base } from "$app/paths";
   import Section from "$lib/components/ui/Section.svelte";
   import Card from "$lib/components/ui/Card.svelte";
   import Badge from "$lib/components/ui/Badge.svelte";
-  import { COMMANDS, HARNESSES, PACKAGES, PROFILES, STACK } from "$lib/data/meta";
+  import {
+    COMMANDS,
+    HARNESSES,
+    PACKAGES,
+    PROFILES,
+    QUICKSTART,
+    STACK,
+    STATUS,
+  } from "$lib/data/meta";
 </script>
 
 <!-- Hero -->
@@ -16,6 +23,9 @@
       An experimental benchmark for evaluating whether AI coding agents can repeatedly generate
       software from a durable, implementation-independent verification bundle.
     </p>
+    <p class="mt-4 text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed">
+      {STATUS}
+    </p>
     <div class="mt-8 flex flex-wrap gap-3 justify-center">
       <a href="https://github.com/rmax-ai/regenerable-software-lab"
          class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-medium transition">
@@ -24,6 +34,10 @@
       <a href="https://github.com/rmax-ai/regenerable-software-lab/blob/main/SPEC.md"
          class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-5 py-2.5 rounded-lg font-medium transition">
         Read the Spec
+      </a>
+      <a href="https://github.com/rmax-ai/regenerable-software-lab/blob/main/README.md"
+         class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 px-5 py-2.5 rounded-lg font-medium transition">
+        Setup Guide
       </a>
     </div>
   </div>
@@ -41,8 +55,8 @@
   <p class="text-slate-400 leading-relaxed">
     The first benchmark is a small HTTP order-pricing API. Multiple coding models and agent harnesses
     receive the same specification and must produce an implementation that passes
-    <strong class="text-slate-200">three verification profiles</strong> spanning public tests,
-    hidden behavioral tests, mutation testing, and operational constraints.
+    verification profiles spanning public tests, hidden behavioral tests, mutation testing,
+    and (partially) operational constraints.
   </p>
 </Section>
 
@@ -51,47 +65,36 @@
   <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">How It Works</h2>
   <div class="bg-slate-900/50 border border-slate-800 rounded-lg p-6 overflow-x-auto">
     <svg viewBox="0 0 720 380" class="w-full h-auto max-w-2xl mx-auto" xmlns="http://www.w3.org/2000/svg">
-      <!-- Spec -->
       <rect x="260" y="10" width="200" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
       <text x="360" y="35" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">SPEC + Benchmarks</text>
 
-      <!-- Arrow down -->
       <line x1="360" y1="50" x2="360" y2="75" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
 
-      <!-- CLI -->
       <rect x="230" y="80" width="260" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
       <text x="360" y="105" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">rsl CLI (6 commands)</text>
 
-      <!-- Arrow down -->
       <line x1="360" y1="120" x2="360" y2="145" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
 
-      <!-- Runner -->
       <rect x="260" y="150" width="200" height="36" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
       <text x="360" y="173" text-anchor="middle" fill="#e2e8f0" font-size="13">Runner (orchestration)</text>
 
-      <!-- Two branches -->
       <line x1="300" y1="186" x2="180" y2="215" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
       <line x1="420" y1="186" x2="540" y2="215" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
 
-      <!-- Agent workspace -->
       <rect x="70" y="220" width="220" height="55" rx="6" fill="#1e293b" stroke="#6366f1" stroke-width="1.5"/>
       <text x="180" y="245" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Agent Workspace</text>
-      <text x="180" y="264" text-anchor="middle" fill="#94a3b8" font-size="11">Harness adapter → LLM → code</text>
+      <text x="180" y="264" text-anchor="middle" fill="#94a3b8" font-size="11">Harness adapter -&gt; model -&gt; code</text>
 
-      <!-- Evaluator -->
       <rect x="430" y="220" width="220" height="55" rx="6" fill="#1e293b" stroke="#22c55e" stroke-width="1.5"/>
       <text x="540" y="245" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Evaluator</text>
       <text x="540" y="264" text-anchor="middle" fill="#94a3b8" font-size="11">9-stage verification pipeline</text>
 
-      <!-- Merge to report -->
       <line x1="180" y1="275" x2="300" y2="315" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
       <line x1="540" y1="275" x2="420" y2="315" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
 
-      <!-- Results -->
       <rect x="230" y="320" width="260" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
       <text x="360" y="345" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="600">Reports + Traces + Metrics</text>
 
-      <!-- Arrow marker -->
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/>
@@ -108,8 +111,11 @@
     {#each PROFILES as profile}
       <Card title={profile.name}>
         <p class="mb-2 text-slate-300">{profile.stages}</p>
-        <Badge text={profile.status === "done" ? "Implemented" : "In Progress"}
-               variant={profile.status === "done" ? "done" : "in-progress"} />
+        <p class="mb-3 text-slate-500 text-xs">{profile.note}</p>
+        <Badge
+          text={profile.status === "done" ? "Implemented" : "In Progress"}
+          variant={profile.status === "done" ? "done" : "in-progress"}
+        />
       </Card>
     {/each}
   </div>
@@ -120,18 +126,22 @@
   <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">CLI Commands</h2>
   <div class="bg-black rounded-lg border border-slate-800 overflow-hidden">
     <div class="px-4 py-2 border-b border-slate-800 text-slate-500 text-xs font-mono">
-      rsl [command]
+      node apps/cli/dist/main.js [command]
     </div>
     <div class="p-4 space-y-2 font-mono text-sm">
       {#each COMMANDS as cmd}
         <div class="flex gap-3">
           <span class="text-indigo-400 font-semibold whitespace-nowrap">{cmd.cmd}</span>
-          <span class="text-slate-500">—</span>
+          <span class="text-slate-500">-</span>
           <span class="text-slate-400">{cmd.desc}</span>
         </div>
       {/each}
     </div>
   </div>
+  <p class="mt-3 text-slate-500 text-sm">
+    After <code class="text-slate-400">pnpm build</code>, invoke the compiled CLI entrypoint directly.
+    Named harnesses use <code class="text-slate-400">--harness-id</code> (for example <code class="text-slate-400">fake</code>, <code class="text-slate-400">codex</code>, <code class="text-slate-400">droid</code>).
+  </p>
 </Section>
 
 <!-- Harness Adapters -->
@@ -157,17 +167,18 @@
     <div class="px-4 py-2 border-b border-slate-800 text-slate-500 text-xs">
       Terminal
     </div>
-    <div class="p-4 font-mono text-sm leading-relaxed">
-      <div><span class="text-slate-500">$</span> <span class="text-slate-300">git clone https://github.com/rmax-ai/regenerable-software-lab.git</span></div>
-      <div><span class="text-slate-500">$</span> <span class="text-slate-300">cd regenerable-software-lab</span></div>
-      <div><span class="text-slate-500">$</span> <span class="text-slate-300">pnpm install && pnpm build</span></div>
-      <div class="mt-3"><span class="text-slate-500">$</span> <span class="text-slate-300">pnpm test</span></div>
-      <div class="text-emerald-400 mt-1">✓ 168 tests passed (packages)</div>
-      <div class="mt-3"><span class="text-slate-500">$</span> <span class="text-slate-300">cd benchmarks/order-pricing/reference-impl</span></div>
-      <div><span class="text-slate-500">$</span> <span class="text-slate-300">pnpm install && pnpm build && pnpm test</span></div>
-      <div class="text-emerald-400 mt-1">✓ 136 tests passed (reference impl)</div>
+    <div class="p-4 font-mono text-sm leading-relaxed space-y-1">
+      {#each QUICKSTART as line}
+        <div><span class="text-slate-500">$</span> <span class="text-slate-300">{line}</span></div>
+      {/each}
     </div>
   </div>
+  <ul class="mt-4 space-y-2 text-slate-500 text-sm list-disc list-inside">
+    <li><code class="text-slate-400">pnpm test</code> runs workspace package tests (many packages still stub).</li>
+    <li><code class="text-slate-400">pnpm --filter reference-impl test</code> runs the public order-pricing suite.</li>
+    <li>Hidden/property suites need a one-time install under <code class="text-slate-400">benchmarks/order-pricing/hidden</code>.</li>
+    <li>Fake-harness smoke runs exercise the runner path without real model calls.</li>
+  </ul>
 </Section>
 
 <!-- Stack -->

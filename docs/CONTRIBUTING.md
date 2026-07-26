@@ -267,7 +267,7 @@ pnpm --filter @rsl/cli exec rsl experiment run my-experiment.yaml
 Or use the CLI directly:
 
 ```bash
-pnpm --filter @rsl/cli exec rsl run order-pricing --harness fake --profile basic
+node apps/cli/dist/main.js run order-pricing --harness-id fake --profile basic
 ```
 
 ### Step 3: Compare Results

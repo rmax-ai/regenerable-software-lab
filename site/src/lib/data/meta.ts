@@ -1,7 +1,10 @@
 export const VERSION = "v0.1.0";
 
+export const STATUS =
+  "Phase 4: runner, CLI, harness adapters, and evaluator are operational. Profiles A and B are implemented. Profile C is partial.";
+
 export const STACK = [
-  "TypeScript 5.9",
+  "TypeScript 5.x",
   "Node.js >= 24",
   "pnpm (monorepo)",
   "Fastify",
@@ -12,19 +15,22 @@ export const STACK = [
 
 export const PROFILES = [
   {
-    name: "Profile A — Basic",
+    name: "Profile A - Basic",
     stages: "Install, Build, Lint, Typecheck, Public Tests, Contract Validation",
-    status: "done",
+    status: "done" as const,
+    note: "Evaluator stages 1-6",
   },
   {
-    name: "Profile B — Behavioral",
+    name: "Profile B - Behavioral",
     stages: "Hidden Tests, Property Tests, Mutation Testing",
-    status: "done",
+    status: "done" as const,
+    note: "Evaluator stages 7-9; local oracle passes against reference-impl",
   },
   {
-    name: "Profile C — Operational",
+    name: "Profile C - Operational",
     stages: "Dependency Policy, Secret Scanning, Performance Budgets",
-    status: "in-progress",
+    status: "in-progress" as const,
+    note: "Partial; not a complete operational gate yet",
   },
 ];
 
@@ -54,4 +60,15 @@ export const COMMANDS = [
   { cmd: "experiment", desc: "Run an experiment with multiple configurations" },
   { cmd: "report", desc: "Display or export a benchmark run report" },
   { cmd: "trace", desc: "Inspect trace events from a benchmark run" },
+];
+
+export const QUICKSTART = [
+  "git clone https://github.com/rmax-ai/regenerable-software-lab.git",
+  "cd regenerable-software-lab",
+  "pnpm install && pnpm build",
+  "pnpm test",
+  "pnpm --filter reference-impl test",
+  "pnpm --dir benchmarks/order-pricing/hidden install --ignore-workspace",
+  "pnpm test:hidden && pnpm test:property",
+  "node apps/cli/dist/main.js run order-pricing --harness-id fake --profile basic",
 ];
