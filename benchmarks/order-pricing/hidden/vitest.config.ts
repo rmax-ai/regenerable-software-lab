@@ -49,11 +49,16 @@ export default defineConfig({
         : testMode === "hidden"
           ? ["tests/property/**"]
           : [],
+    // Keep property runs bounded; HTTP inject loops can otherwise overrun CI.
+    testTimeout: testMode === "property" ? 30_000 : 10_000,
+    hookTimeout: 10_000,
     pool: "forks",
     poolOptions: {
       forks: {
         singleFork: true,
       },
     },
+    // Fastify inject / open handles can keep the worker alive after completion.
+    forceExit: true,
   },
 });

@@ -14,7 +14,7 @@
     "clean": "rm -rf dist",
     "lint": "echo 'lint ok'",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "decimal.js": "^10.4.3",

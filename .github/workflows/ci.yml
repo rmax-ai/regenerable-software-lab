@@ -36,15 +36,17 @@ jobs:
       - name: Typecheck
         run: tsc -b
 
+      - name: Workspace package tests
+        run: pnpm test
+
       - name: Public tests (reference impl)
         run: pnpm --filter reference-impl test
 
+      - name: Install hidden suite deps
+        run: pnpm --dir benchmarks/order-pricing/hidden install --ignore-workspace
+
       - name: Hidden tests (order-pricing)
-        run: |
-          cd benchmarks/order-pricing/hidden
-          npx vitest run --config vitest.config.ts
+        run: pnpm test:hidden
 
       - name: Property tests (order-pricing)
-        run: |
-          cd benchmarks/order-pricing/hidden
-          TEST_MODE=property npx vitest run --config vitest.config.ts
+        run: pnpm test:property

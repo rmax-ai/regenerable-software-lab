@@ -1,1 +1,19 @@
-{"private":true,"devDependencies":{"fast-check":"^4.9.0"}}
+{
+  "name": "order-pricing-hidden",
+  "private": true,
+  "type": "module",
+  "description": "Hidden verification suite for the order-pricing benchmark (not agent-visible)",
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:property": "TEST_MODE=property vitest run --config vitest.config.ts",
+    "test:all": "TEST_MODE=all vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "decimal.js": "^10.4.3",
+    "fast-check": "^4.9.0",
+    "fastify": "^5.2.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

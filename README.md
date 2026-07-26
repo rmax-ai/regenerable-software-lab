@@ -48,12 +48,13 @@ pnpm build
 
 ### Running the Reference Implementation
 
-The order-pricing benchmark includes a hand-written reference implementation that passes all verification profiles:
+The order-pricing benchmark includes a hand-written reference implementation used as the local oracle for public and hidden verification:
 
 ```bash
 cd benchmarks/order-pricing/reference-impl
 pnpm install
 pnpm build
+pnpm test
 ```
 
 Start the server:
@@ -66,14 +67,45 @@ The API serves on `http://localhost:3000` with endpoints for orders, items, disc
 
 ### Running Tests
 
-**Public tests** (visible to agents):
+**Workspace package tests** (root command; does not run hidden benchmark suites):
 
 ```bash
-cd benchmarks/order-pricing/reference-impl
 pnpm test
 ```
 
-**Hidden tests** run through the evaluator inside an agent workspace — they are not directly executable standalone. The evaluator installs dependencies (`decimal.js`, `fast-check`) and mounts the candidate's built server before executing hidden, property, and mutation tests.
+**Public tests** (visible to agents):
+
+```bash
+pnpm --filter reference-impl test
+```
+
+**Hidden tests** (not visible to agents, executed outside the agent workspace):
+
+```bash
+# Install hidden-suite deps once (not part of the pnpm workspace on purpose)
+pnpm --dir benchmarks/order-pricing/hidden install --ignore-workspace
+
+# Hidden integration and edge-case tests
+pnpm test:hidden
+
+# Property-based tests
+pnpm test:property
+```
+
+Hidden tests also run through the evaluator inside an agent workspace. The evaluator mounts the candidate source and executes hidden, property, and mutation stages.
+
+**Mutation tests** (StrykerJS):
+
+```bash
+pnpm --filter reference-impl test:mutation
+```
+
+### Smoke-running a Benchmark
+
+```bash
+pnpm build
+node apps/cli/dist/main.js run order-pricing --harness-id fake --profile basic
+```
 
 ### Running All Verify Checks
 
@@ -83,7 +115,8 @@ From the repository root:
 pnpm typecheck   # TypeScript type checking
 pnpm build       # Build all workspace packages
 pnpm lint        # Lint checking
-pnpm test        # Run package test suites
+pnpm test        # Workspace package tests
+pnpm test:hidden # Hidden order-pricing tests against reference-impl
 ```
 
 ## CLI
@@ -133,10 +166,10 @@ Five adapters implement the `AgentHarness` interface, allowing any model to be e
 The fake harness simulates agent behavior deterministically without real model calls. It supports multiple scenarios for CI testing:
 
 ```bash
-SCENARIO=success pnpm --filter @rsl/harness-fake exec vitest run
-SCENARIO=buildFailure pnpm --filter @rsl/harness-fake exec vitest run
-SCENARIO=timeout pnpm --filter @rsl/harness-fake exec vitest run
-SCENARIO=policyViolation pnpm --filter @rsl/harness-fake exec vitest run
+SCENARIO=success pnpm --filter @rsl/harness-fake test
+SCENARIO=buildFailure pnpm --filter @rsl/harness-fake test
+SCENARIO=timeout pnpm --filter @rsl/harness-fake test
+SCENARIO=policyViolation pnpm --filter @rsl/harness-fake test
 ```
 
 Available scenarios: `success`, `buildFailure`, `timeout`, `policyViolation`, `falseClaim`, `budgetExhausted`, `partialImpl`, `repeatedCommands`.

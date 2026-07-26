@@ -9,8 +9,10 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "pnpm -r --if-present run test",
+    "test:watch": "pnpm -r --if-present --parallel run test:watch",
+    "test:hidden": "pnpm --dir benchmarks/order-pricing/hidden --ignore-workspace test",
+    "test:property": "pnpm --dir benchmarks/order-pricing/hidden --ignore-workspace test:property"
   },
   "pnpm": {
     "overrides": {
@@ -25,6 +27,8 @@
     "@eslint/js": "^9.0.0",
     "@types/node": "^22.20.1",
     "eslint": "^9.0.0",
-    "typescript-eslint": "^8.0.0"
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
   }
 }
