@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "decimal.js": "^10.4.3",
-    "fastify": "^5.2.0",
+    "fastify": "^5.12.1",
     "fastify-type-provider-zod": "^4.0.2",
     "openapi-types": "^12.1.0",
     "pino": "^9.6.0",

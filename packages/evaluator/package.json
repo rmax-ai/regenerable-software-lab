@@ -16,7 +16,7 @@
     "@rsl/trace": "workspace:*",
     "@rsl/metrics": "workspace:*",
     "@rsl/policies": "workspace:*",
-    "fastify": "^5.0.0",
+    "fastify": "^5.12.1",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
